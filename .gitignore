@@ -1,3 +1,4 @@
 output/*
 mandel/*
 *.o
+README.html
