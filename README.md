@@ -50,3 +50,9 @@ All functions are from main.c that is responsible for 62.97 % of the instruction
 e) Measure one of the functions identified in task 2 d.
 
 getInitialValue has a total runtime of about 9.182 sec when it runs 211440966 times as it does in the baseline.
+
+## Task 3 
+
+c)  Now  use  the  findings  from  Callgrind  and  perform  optimizations  on  thedocumented bottlenecks.
+
+- Changed time spent on getInitialValue from 9.182 to 0.064 by saving the old InitialValue instead of recomputing. Calls to function reduced to 1048576 from 211440966.

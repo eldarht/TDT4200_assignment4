@@ -44,7 +44,7 @@ pixel getDwellColour(unsigned int const y, unsigned int const x, unsigned long l
 }
 
 
-double complex getInitialValue(double complex const cmin, double complex const cmax, unsigned int const y, unsigned int const x) {
+static inline double complex getInitialValue(double complex const cmin, double complex const cmax, unsigned int const y, unsigned int const x) {
 	struct timespec timeBefore;
 	struct timespec timeAfter;
 
@@ -82,10 +82,11 @@ unsigned long long pixelDwell(double complex const cmin,
 	unsigned int const dwellInc = 1;
 	unsigned long long dwell = 0;
 
+	double complex initialValue = z;
 	// Exit condition: dwell is maxDwell or |z| >= 4
 	while(dwell < maxDwell && isPartOfMandelbrot(z, 2.0)) {
 		// z = z² + initValue
-		z = computeNextValue(z, getInitialValue(cmin, cmax, y, x));
+		z = computeNextValue(z, initialValue);
 		dwell += dwellInc;
 	}
 
