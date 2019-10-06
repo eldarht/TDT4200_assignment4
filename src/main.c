@@ -50,29 +50,31 @@ static inline double complex getInitialValue(double complex const cmin, double c
 	return  real + imag * I;
 }
 
-void pixelDwell(double complex const cmin,
+unsigned long long pixelDwell(double complex const cmin,
 						double complex const cmax,
 						unsigned int const y,
-						unsigned int const x,
-						unsigned long long* dwell)
+						unsigned int const x)
 {
 
 	double complex z = getInitialValue(cmin, cmax, y, x);
+	unsigned long long dwell = 0;
 
 	double complex initialValue = z;
 	// Exit condition: dwell is maxDwell or |z| >= 4
-	while(*dwell < maxDwell && cabs(z) < 4) {
+	while(dwell < maxDwell && cabs(z) < 4) {
 		// z = z² + initValue
 		z = z * z + initialValue;
-		++*dwell;
+		++dwell;
 	}
+
+	return dwell;
 }
 
 void computeDwellBuffer(unsigned long long **buffer, double complex cmin, double complex cmax) {
 
 	for (unsigned int y = 0; y < res; y++) {
 		for (unsigned int x = 0; x < res; x++) {
-			pixelDwell(cmin, cmax, y, x, &buffer[y][x]);
+			buffer[y][x] = pixelDwell(cmin, cmax, y, x);
 		}
 	}
 }

@@ -59,7 +59,7 @@ a) Perform optimizations to im-prove cache performance based on cachegrind
 - Moved color malloc/free out of forloop. Changed time from about 0.1 to 0.08.
 - Changed computeDwellBuffer to itterate over rows all x before next y. No quantifiable difference in time.
 - Changed mapDwellBuffer to use memcpy instead of assigning r,g,b individually. Improvement of about 0.005-0.01 second
-- Changed pixelDwell to take dwell buffer as an argument rather than returning for assignment.
+
 
 c)  Now  use  the  findings  from  Callgrind  and  perform  optimizations  on  thedocumented bottlenecks.
 
