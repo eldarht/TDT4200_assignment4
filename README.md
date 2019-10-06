@@ -56,3 +56,8 @@ getInitialValue has a total runtime of about 9.182 sec when it runs 211440966 ti
 c)  Now  use  the  findings  from  Callgrind  and  perform  optimizations  on  thedocumented bottlenecks.
 
 - Changed time spent on getInitialValue from 9.182 to 0.064 by saving the old InitialValue instead of recomputing. Calls to function reduced to 1048576 from 211440966.
+- Removed computeNextValue and computed locally in pixelDwell. Removing unnecessary function call/ stackframe creation. Changing time of pixelDwell from about 5.8 to 4.6.
+- Removed dwellInc and changed dwell+= dwellInc to ++dwell, as dwellInc was always 1 and used nowhere else. Seem to have improved efficiency by about 0.05-0.1 seconds. 
+- Removed isPartOfMandelbrot as it was only used one place and changed 2*2 to 4 as it was called 211440966 times. Changed time of pixelDwell from about 4.5 to 3.4.
+- Changed computeDwellBuffer to itterate over rows all x before next y. No quantifiable difference in time.
+- Changed getInitialValue to not save return variable before returning. No change in time.

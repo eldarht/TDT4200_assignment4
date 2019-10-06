@@ -45,32 +45,10 @@ pixel getDwellColour(unsigned int const y, unsigned int const x, unsigned long l
 
 
 static inline double complex getInitialValue(double complex const cmin, double complex const cmax, unsigned int const y, unsigned int const x) {
-	struct timespec timeBefore;
-	struct timespec timeAfter;
-
-	if(clock_gettime(CLOCK_MONOTONIC, &timeBefore)){
-		printf("Somthing is wrong");
-	}
 	
 	double real = ((double) x / res) * creal(cmax - cmin) + creal(cmin);
 	double imag = ((double) y / res) * cimag(cmax - cmin) + cimag(cmin);
-	double complex ret = real + imag * I;
-
-	if(clock_gettime(CLOCK_MONOTONIC, &timeAfter)){
-		printf("Somthing is wrong 2");
-	}
-
-	timeElapsed += ((double)timeAfter.tv_sec + (double)timeAfter.tv_nsec / 1000000000.0) - ((double)timeBefore.tv_sec + (double)timeBefore.tv_nsec / 1000000000.0) ;
-	timeCount++;
-	return ret;
-}
-
-double complex computeNextValue(double complex const z, double complex const init) {
-	return (z * z) + init;
-}
-
-bool isPartOfMandelbrot(double complex const z, double const factor) {
-	return cabs(z) < (factor * factor);
+	return  real + imag * I;
 }
 
 unsigned long long pixelDwell(double complex const cmin,
@@ -78,27 +56,42 @@ unsigned long long pixelDwell(double complex const cmin,
 						unsigned int const y,
 						unsigned int const x)
 {
+
 	double complex z = getInitialValue(cmin, cmax, y, x);
-	unsigned int const dwellInc = 1;
 	unsigned long long dwell = 0;
 
 	double complex initialValue = z;
 	// Exit condition: dwell is maxDwell or |z| >= 4
-	while(dwell < maxDwell && isPartOfMandelbrot(z, 2.0)) {
+	while(dwell < maxDwell && cabs(z) < 4) {
 		// z = z² + initValue
-		z = computeNextValue(z, initialValue);
-		dwell += dwellInc;
+		z = z * z + initialValue;
+		++dwell;
 	}
 
 	return dwell;
 }
 
 void computeDwellBuffer(unsigned long long **buffer, double complex cmin, double complex cmax) {
-	for (unsigned int x = 0; x < res; x++) {
-		for (unsigned int y = 0; y < res; y++) {
+	
+	struct timespec timeBefore;
+	struct timespec timeAfter;
+
+	if(clock_gettime(CLOCK_MONOTONIC, &timeBefore)){
+		printf("Somthing is wrong");
+	}
+	
+	for (unsigned int y = 0; y < res; y++) {
+		for (unsigned int x = 0; x < res; x++) {
 			buffer[y][x] = pixelDwell(cmin, cmax, y, x);
 		}
 	}
+
+	if(clock_gettime(CLOCK_MONOTONIC, &timeAfter)){
+		printf("Somthing is wrong 2");
+	}
+
+	timeElapsed += ((double)timeAfter.tv_sec + (double)timeAfter.tv_nsec / 1000000000.0) - ((double)timeBefore.tv_sec + (double)timeBefore.tv_nsec / 1000000000.0) ;
+	timeCount++;
 }
 
 void mapDwellBuffer(bmpImage *image, unsigned long long **buffer) {
