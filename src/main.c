@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <complex.h>
+#include <time.h>
 #include "libs/bitmap.h"
 #include "libs/utilities.h"
 #include "main.h"
@@ -31,6 +32,9 @@ static unsigned int colourMapSize = 0;
 static unsigned int res = 2048;
 static unsigned int maxDwell = 512;
 
+double timeElapsed;
+unsigned int timeCount = 0;
+
 
 pixel getDwellColour(unsigned int const y, unsigned int const x, unsigned long long const dwell) {
 	static const double log2 = 0.693147180559945309417232121458176568075500134360255254120;
@@ -41,9 +45,23 @@ pixel getDwellColour(unsigned int const y, unsigned int const x, unsigned long l
 
 
 double complex getInitialValue(double complex const cmin, double complex const cmax, unsigned int const y, unsigned int const x) {
+	struct timespec timeBefore;
+	struct timespec timeAfter;
+
+	if(clock_gettime(CLOCK_MONOTONIC, &timeBefore)){
+		printf("Somthing is wrong");
+	}
+	
 	double real = ((double) x / res) * creal(cmax - cmin) + creal(cmin);
 	double imag = ((double) y / res) * cimag(cmax - cmin) + cimag(cmin);
 	double complex ret = real + imag * I;
+
+	if(clock_gettime(CLOCK_MONOTONIC, &timeAfter)){
+		printf("Somthing is wrong 2");
+	}
+
+	timeElapsed += ((double)timeAfter.tv_sec + (double)timeAfter.tv_nsec / 1000000000.0) - ((double)timeBefore.tv_sec + (double)timeBefore.tv_nsec / 1000000000.0) ;
+	timeCount++;
 	return ret;
 }
 
@@ -240,7 +258,7 @@ int main( int argc, char *argv[] )
 		fprintf(stderr, "ERROR: could not save image to %s\n", output);
 		goto error_exit;
 	}
-
+	printf("Elapsed: %.3f, Times ran: %d\n", timeElapsed, timeCount);
 	goto exit_graceful;
 error_exit:
 	ret = 1;

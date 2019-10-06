@@ -46,3 +46,7 @@ c) Identify 4 functions in the application which are responsible formost of the 
 | isPartOfMendelbrot| 7.43		|
 
 All functions are from main.c that is responsible for 62.97 % of the instruction fetches (Ir). 
+
+e) Measure one of the functions identified in task 2 d.
+
+getInitialValue has a total runtime of about 9.182 sec when it runs 211440966 times as it does in the baseline.
