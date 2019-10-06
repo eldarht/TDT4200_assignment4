@@ -32,8 +32,7 @@ static unsigned int colourMapSize = 0;
 static unsigned int res = 2048;
 static unsigned int maxDwell = 512;
 
-double timeElapsed;
-unsigned int timeCount = 0;
+double elapsedSeconds = 0;
 
 
 pixel getDwellColour(unsigned int const y, unsigned int const x, unsigned long long const dwell) {
@@ -51,60 +50,55 @@ static inline double complex getInitialValue(double complex const cmin, double c
 	return  real + imag * I;
 }
 
-unsigned long long pixelDwell(double complex const cmin,
+void pixelDwell(double complex const cmin,
 						double complex const cmax,
 						unsigned int const y,
-						unsigned int const x)
+						unsigned int const x,
+						unsigned long long* dwell)
 {
 
 	double complex z = getInitialValue(cmin, cmax, y, x);
-	unsigned long long dwell = 0;
 
 	double complex initialValue = z;
 	// Exit condition: dwell is maxDwell or |z| >= 4
-	while(dwell < maxDwell && cabs(z) < 4) {
+	while(*dwell < maxDwell && cabs(z) < 4) {
 		// z = z² + initValue
 		z = z * z + initialValue;
-		++dwell;
+		++*dwell;
 	}
-
-	return dwell;
 }
 
 void computeDwellBuffer(unsigned long long **buffer, double complex cmin, double complex cmax) {
-	
-	struct timespec timeBefore;
-	struct timespec timeAfter;
 
-	if(clock_gettime(CLOCK_MONOTONIC, &timeBefore)){
-		printf("Somthing is wrong");
-	}
-	
 	for (unsigned int y = 0; y < res; y++) {
 		for (unsigned int x = 0; x < res; x++) {
-			buffer[y][x] = pixelDwell(cmin, cmax, y, x);
+			pixelDwell(cmin, cmax, y, x, &buffer[y][x]);
 		}
 	}
-
-	if(clock_gettime(CLOCK_MONOTONIC, &timeAfter)){
-		printf("Somthing is wrong 2");
-	}
-
-	timeElapsed += ((double)timeAfter.tv_sec + (double)timeAfter.tv_nsec / 1000000000.0) - ((double)timeBefore.tv_sec + (double)timeBefore.tv_nsec / 1000000000.0) ;
-	timeCount++;
 }
 
 void mapDwellBuffer(bmpImage *image, unsigned long long **buffer) {
-	for (unsigned int x = 0; x < res; x++) {
-		for (unsigned int y = 0; y < res; y++) {
-			pixel *colour = malloc(sizeof(pixel));
+
+	struct timespec start;
+    struct timespec end;
+	
+	if(clock_gettime(CLOCK_MONOTONIC, &start)){
+		printf("Somthing went wrong");
+	}
+
+	pixel *colour = malloc(sizeof(pixel));
+	for (unsigned int y = 0; y < res; y++) {
+		for (unsigned int x = 0; x < res; x++) {
 			*colour = getDwellColour(y, x, buffer[y][x]);
-			image->data[y][x].r = colour->r;
-			image->data[y][x].g = colour->g;
-			image->data[y][x].b = colour->b;
-			free(colour);
+			memcpy(&image->data[y][x], colour, sizeof(pixel));
 		}
 	}
+	free(colour);
+
+	if(clock_gettime(CLOCK_MONOTONIC, &end)){
+		printf("Somthing went wrong 2");
+	}
+	elapsedSeconds += ((double)end.tv_sec + (double)end.tv_nsec / 1000000000.0) - ((double)start.tv_sec + (double)start.tv_nsec / 1000000000.0);
 }
 
 void help(char const *exec, char const opt, char const *optarg) {
@@ -252,7 +246,7 @@ int main( int argc, char *argv[] )
 		fprintf(stderr, "ERROR: could not save image to %s\n", output);
 		goto error_exit;
 	}
-	printf("Elapsed: %.3f, Times ran: %d\n", timeElapsed, timeCount);
+	printf("elapsed: %.3f\n", elapsedSeconds);
 	goto exit_graceful;
 error_exit:
 	ret = 1;
