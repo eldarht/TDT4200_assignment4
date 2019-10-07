@@ -1,4 +1,5 @@
 output/*
-mandel/*
+mandel/mandel
+mandel/.*
 *.o
 README.html

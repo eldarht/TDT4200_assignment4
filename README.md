@@ -59,7 +59,9 @@ a) Perform optimizations to im-prove cache performance based on cachegrind
 - Moved color malloc/free out of forloop. Changed time from about 0.1 to 0.08.
 - Changed computeDwellBuffer to itterate over rows all x before next y. No quantifiable difference in time.
 - Changed mapDwellBuffer to use memcpy instead of assigning r,g,b individually. Improvement of about 0.005-0.01 second
+- Changed mapDwellBuffer to not allocate color on heap
 
+Also tried to make a change to compute dwell buffer where result of each row was saved to a result array, before being moved to the buffer with memcpy. This was reverted as the number of misses went slightly up and could cause a problem with higher resolutions.
 
 c)  Now  use  the  findings  from  Callgrind  and  perform  optimizations  on  thedocumented bottlenecks.
 
@@ -68,3 +70,20 @@ c)  Now  use  the  findings  from  Callgrind  and  perform  optimizations  on  t
 - Removed dwellInc and changed dwell+= dwellInc to ++dwell, as dwellInc was always 1 and used nowhere else. Seem to have improved efficiency by about 0.05-0.1 seconds. 
 - Removed isPartOfMandelbrot as it was only used one place and changed 2*2 to 4 as it was called 211440966 times. Changed time of pixelDwell from about 4.5 to 3.4.
 - Changed getInitialValue to not save return variable before returning. No change in time.
+
+d) make time reports 0:03.29 elapsed / 0:03.22 elapsed / 0:03.16 when running the command three times.
+
+From callgrind:
+
+|	function 		|	Self Ir |
+|-------------------|-----------|
+| getInitialValue	| 71303168	|
+| computeNextValue	| 25175070	|
+| pixelDwell		| 659278782	|
+| isPartOfMendelbrot| 0			|
+
+From cachgrind
+|Function 			| Ilmr 	| DLmr  | DLmw  | Last-level miss sum 	|
+|-------------------|-------|-------|-------|-----------------------|
+|mapDwellBuffer		| 3		|131588	| 49409	|	     181000			|
+|computeDwellBuffer	| 4		| 80	|130947	|	     131031			|

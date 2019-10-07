@@ -7,7 +7,6 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <complex.h>
-#include <time.h>
 #include "libs/bitmap.h"
 #include "libs/utilities.h"
 #include "main.h"
@@ -31,9 +30,6 @@ static unsigned int colourMapSize = 0;
 
 static unsigned int res = 2048;
 static unsigned int maxDwell = 512;
-
-double elapsedSeconds = 0;
-
 
 pixel getDwellColour(unsigned int const y, unsigned int const x, unsigned long long const dwell) {
 	static const double log2 = 0.693147180559945309417232121458176568075500134360255254120;
@@ -77,30 +73,16 @@ void computeDwellBuffer(unsigned long long **buffer, double complex cmin, double
 			buffer[y][x] = pixelDwell(cmin, cmax, y, x);
 		}
 	}
+	
 }
 
 void mapDwellBuffer(bmpImage *image, unsigned long long **buffer) {
 
-	struct timespec start;
-    struct timespec end;
-	
-	if(clock_gettime(CLOCK_MONOTONIC, &start)){
-		printf("Somthing went wrong");
-	}
-
-	pixel *colour = malloc(sizeof(pixel));
 	for (unsigned int y = 0; y < res; y++) {
 		for (unsigned int x = 0; x < res; x++) {
-			*colour = getDwellColour(y, x, buffer[y][x]);
-			memcpy(&image->data[y][x], colour, sizeof(pixel));
+			image->data[y][x] = getDwellColour(y, x, buffer[y][x]);
 		}
 	}
-	free(colour);
-
-	if(clock_gettime(CLOCK_MONOTONIC, &end)){
-		printf("Somthing went wrong 2");
-	}
-	elapsedSeconds += ((double)end.tv_sec + (double)end.tv_nsec / 1000000000.0) - ((double)start.tv_sec + (double)start.tv_nsec / 1000000000.0);
 }
 
 void help(char const *exec, char const opt, char const *optarg) {
@@ -125,11 +107,8 @@ void help(char const *exec, char const opt, char const *optarg) {
 
 int main( int argc, char *argv[] )
 {
-	int ret = 1;
+	int ret = 0;
 	/* Standard Values */
-	char *output = NULL; //output image filepath
-	bmpImage *image = NULL; //output image
-	unsigned long long **dwellBuffer = NULL;
 	double x = 0.5, y = 0.5; // coordinates
 	double scale = 1; // scaling factor
 	unsigned int colourIterations = 1; //how many times the colour gradient is repeated
@@ -177,9 +156,9 @@ int main( int argc, char *argv[] )
 		goto error_exit;
 	}
 
-	output = calloc(strlen(argv[optind]) + 1, sizeof(char));
+	char *output = NULL; //output image filepath
+	output = malloc((strlen(argv[optind]) + 1) * sizeof(char));
 	strncpy(output, argv[optind], strlen(argv[optind]));
-	optind++;
 
 	/* Initialize the colourMap, which assigns each possible dwell Value a colour */
 	/* This might look complex but is just eye candy. */
@@ -213,6 +192,7 @@ int main( int argc, char *argv[] )
 
 
 	//Allocate bmp image
+	bmpImage *image = NULL; //output image
 	image = newBmpImage(res, res);
 	if (image == NULL) {
 		fprintf(stderr, "ERROR: could not allocate bmp image space!\n");
@@ -220,6 +200,7 @@ int main( int argc, char *argv[] )
 	}
 
 	//Allocate the Dwell buffer, 2 dimensional array
+	unsigned long long **dwellBuffer = NULL;
 	dwellBuffer = malloc(res * sizeof(unsigned long long *));
 	if (dwellBuffer == NULL) {
 		fprintf(stderr, "ERROR: could not allocate dwell buffer\n");
@@ -248,7 +229,7 @@ int main( int argc, char *argv[] )
 		fprintf(stderr, "ERROR: could not save image to %s\n", output);
 		goto error_exit;
 	}
-	printf("elapsed: %.3f\n", elapsedSeconds);
+	
 	goto exit_graceful;
 error_exit:
 	ret = 1;
@@ -264,6 +245,6 @@ exit_graceful:
 		free(dwellBuffer);
 	}
 
-	return 0;
+	return ret;
 }
 
