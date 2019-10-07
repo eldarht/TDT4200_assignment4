@@ -31,19 +31,19 @@ b) Identify at least two positions in the application which show abad utilizatio
 
 By looking at the Last level miss sum, it seem that the worst cach utilization is by mapDwellBuffer and computeDwellBuffer.
 
-|Function 			| Ilmr 	| DLmr  | DLmw  | Last-level miss sum 	|
-|-------------------|-------|-------|-------|-----------------------|
-|mapDwellBuffer		| 0.49	| 76.53	| 21.58	|	     44.88			|
-|computeDwellBuffer	| 0.39	| 0.00	| 56.65	|	     32.43			|
+|Function 			| Ilmr %| DLmr %|DLmw % | Last-level miss sum  %| Last-level miss sum 	| L1 Miss Sum 	|
+|-------------------|-------|-------|-------|-----------------------|-----------------------|---------------|
+|mapDwellBuffer		| 0.49	| 76.53	| 21.58	|	     44.88			| 		181381			| 		2394095	|
+|computeDwellBuffer	| 0.39	| 0.00	| 56.65	|	     32.43			|		131076			|		1179794	|
 
 c) Identify 4 functions in the application which are responsible formost of the runtime and document their share of the runtime.
 
-|	function 		|	Self Ir |
-|-------------------|-----------|
-| getInitialValue	| 25.52		|
-| computeNextValue	| 16.22		|
-| pixelDwell		| 13.49		|
-| isPartOfMendelbrot| 7.43		|
+|	function 		| Self Ir % |  Self Ir 	|
+|-------------------|-----------|-----------|
+| getInitialValue	| 25.52		|15223749552|
+| computeNextValue	| 16.22		|9678049940 |
+| pixelDwell		| 13.49		|8046262340 |
+| isPartOfMendelbrot| 7.43		|4431927402 |
 
 All functions are from main.c that is responsible for 62.97 % of the instruction fetches (Ir). 
 
@@ -82,8 +82,9 @@ From callgrind:
 | pixelDwell		| 659278782	|
 | isPartOfMendelbrot| 0			|
 
-From cachgrind
-|Function 			| Ilmr 	| DLmr  | DLmw  | Last-level miss sum 	|
-|-------------------|-------|-------|-------|-----------------------|
-|mapDwellBuffer		| 3		|131588	| 49409	|	     181000			|
-|computeDwellBuffer	| 4		| 80	|130947	|	     131031			|
+From cachgrind:
+
+|Function 			| Ilmr 	| DLmr  | DLmw  | Last-level miss sum 	| L1 Miss Sum 	|
+|-------------------|-------|-------|-------|-----------------------|---------------|
+|mapDwellBuffer		| 3		|131588	| 49409	|	     181000			| 181000		|
+|computeDwellBuffer	| 4		| 80	|130947	|	     131031			| 131462		|
