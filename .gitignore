@@ -1,4 +1,3 @@
-output/*
 mandel/mandel
 mandel/.*
 *.o
